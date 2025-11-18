@@ -210,7 +210,7 @@ async function showImage(src, duration) {
 
 async function showVideo(src) {
     const layer = document.getElementById("media-layer");
-    layer.innerHTML = `<video class="media" src="${src}" autoplay playsinline></video>`;
+    layer.innerHTML = `<video class="media" src="${src}" controls></video>`;
     layer.classList.add("show");
 
     return new Promise(resolve => {
@@ -222,6 +222,9 @@ async function showVideo(src) {
             layer.classList.remove("hide");
             resolve();
         };
+
+        // Only start playing after the user clicks anywhere
+        document.body.addEventListener('click', () => vid.play(), { once: true });
     });
 }
 
