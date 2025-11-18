@@ -215,16 +215,29 @@ async function showVideo(src) {
 
     return new Promise(resolve => {
         const vid = layer.querySelector("video");
+
+        // If the video is paused due to autoplay restrictions, ask user to click
+        const playVideo = () => {
+            vid.play().catch(() => {
+                // do nothing, wait for click
+            });
+        };
+
+        document.body.addEventListener('click', playVideo);
+
         vid.onended = async () => {
             layer.classList.remove("show");
             layer.classList.add("hide");
             await wait(1000);
             layer.classList.remove("hide");
+
+            // Remove click listener after video ends
+            document.body.removeEventListener('click', playVideo);
             resolve();
         };
 
-        // Only start playing after the user clicks anywhere
-        document.body.addEventListener('click', () => vid.play(), { once: true });
+        // Try to autoplay immediately (may fail)
+        playVideo();
     });
 }
 
@@ -289,3 +302,4 @@ function init3D() {
 </script>
 </body>
 </html>
+
