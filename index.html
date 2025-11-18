@@ -160,7 +160,9 @@ function type() {
 }
 type();
 
-/* TERMINAL → RUNNING TEXT */
+/* -----------------------------
+   TRANSITION FUNCTIONS
+----------------------------- */
 function startTransition() {
     const terminal = document.getElementById("terminal");
     terminal.classList.add("slide-out");
@@ -170,7 +172,6 @@ function startTransition() {
     }, 1000);
 }
 
-/* RUNNING TEXT → PHOTOS + VIDEO → 3D */
 function startRunningText() {
     const run = document.getElementById("run-container");
     run.classList.add("show");
@@ -178,17 +179,20 @@ function startRunningText() {
     setTimeout(async () => {
         run.classList.remove("show");
         run.classList.add("hide");
-        await wait(1000); // wait for slide out
+        await wait(1000);
 
+        // Run media sequence
         await showImage("photo1.jpg", 2000);
         await showImage("photo2.jpg", 2000);
-        await showVideo("video.mp4");
+        await showVideo("video.mp4"); // GitHub Pages compatible
 
         init3D();
     }, 8000);
 }
 
-/* MEDIA FUNCTIONS */
+/* -----------------------------
+   MEDIA FUNCTIONS
+----------------------------- */
 function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
 
 async function showImage(src, duration) {
@@ -200,13 +204,13 @@ async function showImage(src, duration) {
 
     layer.classList.remove("show");
     layer.classList.add("hide");
-    await wait(1000); // wait for slide out
+    await wait(1000);
     layer.classList.remove("hide");
 }
 
 async function showVideo(src) {
     const layer = document.getElementById("media-layer");
-    layer.innerHTML = `<video class="media" src="${src}" autoplay></video>`;
+    layer.innerHTML = `<video class="media" src="${src}" autoplay playsinline></video>`;
     layer.classList.add("show");
 
     return new Promise(resolve => {
@@ -221,7 +225,9 @@ async function showVideo(src) {
     });
 }
 
-/* THREE.JS 3D SCENE */
+/* -----------------------------
+   THREE.JS 3D SCENE
+----------------------------- */
 function init3D() {
     import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js").then(THREE => {
         import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js").then(mod => {
