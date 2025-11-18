@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>:)</title>
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    background: black;
+    font-family: "Courier New", monospace;
+}
+
+#terminal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: black;
+    color: white;
+    padding: 40px;
+    font-size: 22px;
+    white-space: pre-wrap;
+    z-index: 10;
+}
+
+/* Running text container */
+#run-container {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    transform: translateY(-50%);
+    overflow: hidden;
+    display: none;
+    z-index: 9;
+}
+
+/* Running text */
+#run-text {
+    white-space: nowrap;
+    font-size: 45px;
+    font-weight: bold;
+    color: white;
+    animation: fadeSlide 8s linear forwards;
+}
+
+/* Fade + slide animation */
+@keyframes fadeSlide {
+    0% { transform: translateX(100%); opacity: 0; }
+    10% { opacity: 1; }
+    50% { opacity: 1; }
+    100% { transform: translateX(-100%); opacity: 0; }
+}
+
+/* Slide animations */
+@keyframes slideIn {
+    0% { transform: translateY(100%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes slideOut {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-100%); opacity: 0; }
+}
+
+#terminal.slide-out {
+    animation: slideOut 1s forwards;
+}
+
+#run-container.show {
+    display: block;
+    animation: slideIn 1s forwards;
+}
+#run-container.hide {
+    animation: slideOut 1s forwards;
+}
+
+#media-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    background: black;
+    z-index: 8;
+}
+#media-layer.show {
+    display: flex;
+    animation: slideIn 1s forwards;
+}
+#media-layer.hide {
+    animation: slideOut 1s forwards;
+}
+
+.media {
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.cursor {
+    display: inline-block;
+    width: 10px;
+    background: white;
+    animation: blink 0.7s steps(1) infinite;
+}
+
+@keyframes blink {
+    50% { background: transparent; }
+}
+</style>
+</head>
+<body>
+
+<div id="terminal"></div>
+
+<div id="run-container">
+    <div id="run-text">Bớt buồn đi 😴</div>
+</div>
+
+<div id="media-layer"></div>
+
+<script type="module">
+
+const lines = [
+    "> hey",
+    "...",
+    "> i made you something",
+    "...",
+    "> don't be sad",
+    "...",
+    "o(*￣▽￣*)o o(*￣▽￣*)o o(*￣▽￣*)o"
+];
+
+let lineIndex = 0;
+let charIndex = 0;
+const speed = 50;
+
+function type() {
+    const terminal = document.getElementById("terminal");
+
+    if (lineIndex < lines.length) {
+        if (charIndex === 0) terminal.innerHTML += `<div id='line-${lineIndex}'></div>`;
+        const lineDiv = document.getElementById(`line-${lineIndex}`);
+        lineDiv.textContent += lines[lineIndex][charIndex];
+        charIndex++;
+        if (charIndex < lines[lineIndex].length) setTimeout(type, speed);
+        else {
+            terminal.innerHTML += "\n";
+            lineIndex++;
+            charIndex = 0;
+            setTimeout(type, 400);
+        }
+    } else {
+        setTimeout(startTransition, 800);
+    }
+}
+type();
+
+/* TERMINAL → RUNNING TEXT */
+function startTransition() {
+    const terminal = document.getElementById("terminal");
+    terminal.classList.add("slide-out");
+    setTimeout(() => {
+        terminal.style.display = "none";
+        startRunningText();
+    }, 1000);
+}
+
+/* RUNNING TEXT → PHOTOS + VIDEO → 3D */
+function startRunningText() {
+    const run = document.getElementById("run-container");
+    run.classList.add("show");
+
+    setTimeout(async () => {
+        run.classList.remove("show");
+        run.classList.add("hide");
+        await wait(1000); // wait for slide out
+
+        await showImage("photo1.jpg", 2000);
+        await showImage("photo2.jpg", 2000);
+        await showVideo("video.mp4");
+
+        init3D();
+    }, 8000);
+}
+
+/* MEDIA FUNCTIONS */
+function wait(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+async function showImage(src, duration) {
+    const layer = document.getElementById("media-layer");
+    layer.innerHTML = `<img class="media" src="${src}">`;
+    layer.classList.add("show");
+
+    await wait(duration);
+
+    layer.classList.remove("show");
+    layer.classList.add("hide");
+    await wait(1000); // wait for slide out
+    layer.classList.remove("hide");
+}
+
+async function showVideo(src) {
+    const layer = document.getElementById("media-layer");
+    layer.innerHTML = `<video class="media" src="${src}" autoplay></video>`;
+    layer.classList.add("show");
+
+    return new Promise(resolve => {
+        const vid = layer.querySelector("video");
+        vid.onended = async () => {
+            layer.classList.remove("show");
+            layer.classList.add("hide");
+            await wait(1000);
+            layer.classList.remove("hide");
+            resolve();
+        };
+    });
+}
+
+/* THREE.JS 3D SCENE */
+function init3D() {
+    import("https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js").then(THREE => {
+        import("https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js").then(mod => {
+            const { OrbitControls } = mod;
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 2, 5);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            const controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            const light = new THREE.DirectionalLight(0xffffff, 1.5);
+            light.position.set(3, 5, 5);
+            scene.add(light);
+
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambient);
+
+            const table = new THREE.Mesh(
+                new THREE.PlaneGeometry(10, 10),
+                new THREE.MeshStandardMaterial({ color: 0x333333 })
+            );
+            table.rotation.x = -Math.PI / 2;
+            scene.add(table);
+
+            const cakeGroup = new THREE.Group();
+            const layer1 = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.6, 32), new THREE.MeshStandardMaterial({ color: 0xffc58f }));
+            const layer2 = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.3, 32), new THREE.MeshStandardMaterial({ color: 0xff6b6b }));
+            layer2.position.y = 0.45;
+            const cream = new THREE.Mesh(new THREE.TorusGeometry(1, 0.1, 16, 100), new THREE.MeshStandardMaterial({ color: 0xfff4d1 }));
+            cream.rotation.x = Math.PI / 2; cream.position.y = 0.7;
+            cakeGroup.add(layer1, layer2, cream);
+            cakeGroup.position.y = 0.8;
+            scene.add(cakeGroup);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                cakeGroup.rotation.y += 0.003;
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener("resize", () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        });
+    });
+}
+</script>
+</body>
+</html>
